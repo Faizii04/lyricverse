@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="hi" data-accent="neon">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>LyricVerse</title>
+<style>
+:root{
+  --bg:#0a0a12; --surface:rgba(255,255,255,.06); --surface2:rgba(255,255,255,.11);
+  --border:rgba(255,255,255,.09); --text:#f4f4fb; --muted:#9a9ab3; --danger:#ff6b6b;
+  --accent:#1ed760; --accent2:#7c5cff; --tr:#ffd166; --a-rgb:30,215,96; --b-rgb:124,92,255;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+html[data-accent="sunset"]{--accent:#ff8a5c;--accent2:#ff4d8d;--tr:#ffe0a3;--a-rgb:255,138,92;--b-rgb:255,77,141}
+html[data-accent="ocean"]{--accent:#3dd6ff;--accent2:#5b6cff;--tr:#b4ecff;--a-rgb:61,214,255;--b-rgb:91,108,255}
+html[data-accent="orchid"]{--accent:#ff7ad9;--accent2:#8a5cff;--tr:#ffd6f3;--a-rgb:255,122,217;--b-rgb:138,92,255}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Devanagari",sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+button{font-family:inherit}
+.bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(500px 340px at 10% -5%,rgba(var(--b-rgb),.35),transparent 70%),
+   radial-gradient(460px 320px at 100% 15%,rgba(var(--a-rgb),.22),transparent 70%),
+   radial-gradient(500px 400px at 50% 110%,rgba(var(--b-rgb),.14),transparent 70%)}
+.app{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column;padding:calc(var(--safe-t) + 10px) 14px calc(var(--safe-b) + 8px);gap:10px;max-width:640px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.brand{display:flex;align-items:center;gap:10px;user-select:none;-webkit-user-select:none}
+.logo{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:19px;background:linear-gradient(135deg,var(--accent2),var(--accent));box-shadow:0 6px 18px rgba(var(--b-rgb),.4)}
+.brand h1{font-size:19px;margin:0;font-weight:800}
+.brand h1 span{color:var(--accent)}
+.top-r{display:flex;gap:8px}
+.icon-btn{min-width:40px;height:40px;padding:0 8px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:16px;display:grid;place-items:center;cursor:pointer}
+.icon-btn:active{background:var(--surface2)}
+.search{display:flex;gap:8px}
+.search input{flex:1;min-width:0;padding:12px 14px;border-radius:14px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;outline:none}
+.search input:focus{border-color:var(--accent)}
+.pill{padding:0 14px;min-height:44px;border-radius:14px;border:none;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;display:grid;place-items:center}
+.pill.green{background:var(--accent);color:#04150a}
+.pill.ghost{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.pill:active{opacity:.8}
+.player{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:12px 14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.now{display:flex;gap:12px;align-items:center}
+.disc{flex:0 0 60px;width:60px;height:60px;border-radius:50%;position:relative;background-size:cover;background-position:center;background-color:#222;box-shadow:0 8px 24px rgba(0,0,0,.5);
+  background-image:conic-gradient(from 0deg,#1b1b2b,rgba(var(--b-rgb),1),#1b1b2b,rgba(var(--a-rgb),1),#1b1b2b)}
+.disc::after{content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--bg);border:2px solid #333}
+.disc.spin{animation:spin 6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.disc.spin{animation:none}}
+.meta{flex:1;min-width:0}
+.song-title{font-size:15px;font-weight:700;line-height:1.3;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.status{font-size:11.5px;color:var(--accent);margin-top:3px;line-height:1.4;min-height:15px}
+.status.error{color:var(--danger)} .status.warn{color:var(--tr)}
+.seek{margin-top:10px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:5px;border-radius:5px;outline:none;background:linear-gradient(to right,var(--accent) var(--p,0%),rgba(255,255,255,.14) var(--p,0%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:#fff}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border:none;border-radius:50%;background:#fff}
+.time{min-width:34px;text-align:center;font-variant-numeric:tabular-nums}
+.controls{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:8px}
+.ctl{width:42px;height:42px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:15px;font-weight:700;cursor:pointer}
+.ctl:active{background:var(--surface2)}
+.ctl.on{color:#ff5c8a;border-color:#ff5c8a}
+.play{width:54px;height:54px;font-size:21px;border:none;color:#04150a;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 22px rgba(var(--a-rgb),.4)}
+.views{flex:1;min-height:0;position:relative}
+.view{position:absolute;inset:0;display:none;flex-direction:column;gap:8px;min-height:0}
+.view.show{display:flex}
+.seg{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:3px}
+.tab{flex:1;padding:8px 4px;border:none;background:transparent;color:var(--muted);font-weight:700;font-size:12.5px;border-radius:11px;cursor:pointer}
+.tab.active{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;box-shadow:0 4px 14px rgba(var(--b-rgb),.4)}
+.scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:20px;background:rgba(0,0,0,.28);border:1px solid var(--border);padding:12px}
+.scroll::-webkit-scrollbar{width:0}
+.lyrics-box{padding:16px 14px;scroll-behavior:smooth}
+.line{padding:10px 8px;border-radius:12px;margin-bottom:4px;cursor:pointer;opacity:.4;transition:opacity .25s,transform .25s,background .25s;transform-origin:left center}
+.line.plain{opacity:.95;cursor:default}
+.line.active{opacity:1;transform:scale(1.03);background:linear-gradient(90deg,rgba(var(--a-rgb),.18),transparent)}
+.orig{font-size:calc(17px * var(--fs,1));font-weight:700;line-height:1.4}
+.trans{font-size:calc(14.5px * var(--fs,1));color:var(--tr);margin-top:4px;line-height:1.45}
+.empty-msg{text-align:center;color:var(--muted);margin-top:26px;font-size:13.5px;line-height:1.7;padding:0 10px}
+.empty-msg .big{font-size:40px;display:block;margin-bottom:8px}
+.bar{display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none}
+.bar::-webkit-scrollbar{display:none}
+.mini{flex:0 0 auto;padding:9px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.mini:active{background:var(--surface2)}
+.sync{display:flex;align-items:center;gap:4px;margin-left:auto;flex:0 0 auto}
+.sync b{min-width:44px;text-align:center;color:var(--tr);font-size:12px}
+.item{display:flex;align-items:center;gap:12px;padding:9px;border-radius:14px;cursor:pointer}
+.item:active,.item.cur{background:var(--surface2)}
+.art{flex:0 0 46px;width:46px;height:46px;border-radius:10px;background:#222 center/cover no-repeat;display:grid;place-items:center;font-size:20px}
+.item .info{flex:1;min-width:0}
+.item .t{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .a{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:800;margin-left:6px;vertical-align:middle}
+.tag.full{background:rgba(var(--a-rgb),.2);color:var(--accent)}
+.tag.prev{background:rgba(255,209,102,.16);color:#ffd166}
+.tag.loc{background:rgba(var(--b-rgb),.25);color:var(--text)}
+.x{flex:0 0 auto;border:none;background:transparent;color:var(--muted);font-size:16px;padding:8px;cursor:pointer}
+.head-row{display:flex;align-items:center;justify-content:space-between;padding:2px 4px 8px;color:var(--muted);font-size:12px}
+.nav{display:flex;background:rgba(20,20,31,.85);border:1px solid var(--border);border-radius:18px;padding:4px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.nb{flex:1;padding:8px 2px;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:700;border-radius:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.nb span{font-size:16px}
+.nb.active{background:var(--surface2);color:var(--text)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:11;max-width:640px;margin:0 auto;background:#14141f;border-top:1px solid var(--border);border-radius:24px 24px 0 0;padding:14px 16px calc(var(--safe-b) + 16px);transform:translateY(105%);transition:transform .3s ease;max-height:88dvh;overflow-y:auto;visibility:hidden}
+.sheet.show{transform:translateY(0);visibility:visible}
+.grab{width:40px;height:4px;border-radius:4px;background:rgba(255,255,255,.2);margin:0 auto 12px}
+.sheet h3{margin:0 0 12px;font-size:17px}
+.field-label{display:block;font-size:11.5px;color:var(--muted);margin:12px 0 6px}
+.sheet select,.sheet input[type=password],.sheet input[type=text]{width:100%;padding:11px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;outline:none}
+.sheet select option{background:#14141f}
+.key-wrap{display:flex;gap:6px}
+.test-msg{font-size:12px;min-height:16px;margin:6px 0;color:var(--tr);white-space:pre-line;line-height:1.5}
+.sheet .pill.green{width:100%;margin-top:12px;font-size:14px}
+.hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5}
+.swatches{display:flex;gap:10px}
+.sw{width:44px;height:44px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.sw.on{border-color:#fff}
+.sw[data-th="neon"]{background:linear-gradient(135deg,#7c5cff,#1ed760)}
+.sw[data-th="sunset"]{background:linear-gradient(135deg,#ff4d8d,#ff8a5c)}
+.sw[data-th="ocean"]{background:linear-gradient(135deg,#5b6cff,#3dd6ff)}
+.sw[data-th="orchid"]{background:linear-gradient(135deg,#8a5cff,#ff7ad9)}
+.two{display:flex;gap:8px;margin-top:8px}
+.two .mini{flex:1;padding:12px}
+.toast{position:fixed;left:50%;bottom:calc(var(--safe-b) + 90px);transform:translateX(-50%) translateY(20px);background:#222233;border:1px solid var(--border);padding:9px 14px;border-radius:20px;font-size:12.5px;opacity:0;transition:.25s;z-index:40;pointer-events:none;max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.offline{display:none;background:rgba(255,107,107,.15);border:1px solid rgba(255,107,107,.4);color:#ffb0b0;font-size:12px;padding:7px 10px;border-radius:12px}
+.offline.show{display:block}
+/* karaoke */
+.karaoke{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;flex-direction:column;padding:calc(var(--safe-t) + 12px) 18px calc(var(--safe-b) + 16px)}
+.karaoke.show{display:flex}
+.karaoke::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(520px 420px at 50% 40%,rgba(var(--b-rgb),.3),transparent 70%)}
+.karaoke>*{position:relative}
+.k-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.k-title{font-size:13px;color:var(--muted);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px;text-align:center;min-height:0;overflow:hidden}
+.k-prev,.k-next{font-size:16px;color:var(--muted);opacity:.6;line-height:1.4;min-height:22px}
+.k-o{font-size:clamp(24px,7vw,38px);font-weight:800;line-height:1.3;word-break:break-word}
+.k-t{font-size:clamp(16px,4.6vw,22px);color:var(--tr);margin-top:10px;line-height:1.4}
+.k-foot{display:flex;justify-content:center;align-items:center;gap:22px}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="app">
+  <div class="top">
+    <div class="brand" id="brand"><div class="logo">🎧</div><h1>Lyric<span>Verse</span></h1></div>
+    <div class="top-r">
+      <button class="icon-btn" id="sleepBtn" onclick="cycleSleep()" aria-label="Sleep timer">😴</button>
+      <button class="icon-btn" onclick="openSheet('sheet')" aria-label="Settings">⚙️</button>
+    </div>
+  </div>
+
+  <div class="offline" id="offline">📡 Internet nahi hai. Naye gaane aur lyrics ke liye WiFi ya data on karein. Pehle suni hui lyrics bina internet bhi khulti hain.</div>
+
+  <div class="search">
+    <input type="text" id="searchInput" placeholder="Gaane ka naam likhein aur play karein…" enterkeyhint="search" autocomplete="off" onkeydown="if(event.key==='Enter') manualSearch()">
+    <button class="pill green" onclick="manualSearch()">▶ Play</button>
+    <label class="pill ghost" style="cursor:pointer" title="Phone se gaana">📂<input type="file" accept="audio/*" style="display:none" onchange="onFilePick(this)"></label>
+  </div>
+
+  <div class="player">
+    <div class="now">
+      <div class="disc" id="disc"></div>
+      <div class="meta">
+        <div class="song-title" id="songTitle">Koi gaana chunein…</div>
+        <div class="status" id="status">Gaane ka naam likh kar ▶ Play dabaein</div>
+      </div>
+    </div>
+    <div class="seek">
+      <span class="time" id="curT">0:00</span>
+      <input type="range" id="seekBar" min="0" max="1000" value="0" aria-label="Seek">
+      <span class="time" id="durT">0:00</span>
+    </div>
+    <div class="controls">
+      <button class="ctl" id="favBtn" onclick="toggleFav()" aria-label="Favorite">♡</button>
+      <button class="ctl" onclick="playPrev()" aria-label="Previous">⏮</button>
+      <button class="ctl play" id="playBtn" onclick="togglePlay()" aria-label="Play or pause">▶</button>
+      <button class="ctl" onclick="playNext()" aria-label="Next">⏭</button>
+      <button class="ctl" onclick="openKaraoke()" aria-label="Karaoke mode">🎤</button>
+    </div>
+    <audio id="player" preload="auto" playsinline style="display:none"></audio>
+  </div>
+
+  <div class="views">
+    <div class="view show" id="v-lyrics">
+      <div class="seg">
+        <button class="tab active" onclick="setMode('both',this)">Dono</button>
+        <button class="tab" onclick="setMode('trans',this)">Translated</button>
+        <button class="tab" onclick="setMode('orig',this)">Asli Lyrics</button>
+      </div>
+      <div class="scroll lyrics-box" id="lyricsBox">
+        <div class="empty-msg"><span class="big">🎵</span>Upar gaane ka naam likhein aur ▶ Play dabaein.<br>Gaana chalte hi lyrics apne aap aur translate ho jayenge!</div>
+      </div>
+      <div class="bar">
+        <button class="mini" id="retransBtn" style="display:none" onclick="translateAll(true)">🌐 Translate</button>
+        <button class="mini" id="switchBtn" style="display:none" onclick="switchMatch()">🔄 Lyrics</button>
+        <button class="mini" id="copyBtn" style="display:none" onclick="copyLyrics()">📋 Copy</button>
+        <button class="mini" id="dlBtn" style="display:none" onclick="downloadLrc()">⬇️ .LRC</button>
+        <button class="mini" onclick="changeFont(-0.1)">A−</button>
+        <button class="mini" onclick="changeFont(0.1)">A+</button>
+        <div class="sync">
+          <button class="mini" onclick="adjustOffset(-0.5)">-0.5s</button>
+          <b id="offsetVal">0.0s</b>
+          <button class="mini" onclick="adjustOffset(0.5)">+0.5s</button>
+        </div>
+      </div>
+    </div>
+    <div class="view" id="v-results"><div class="scroll" id="resultsBox"></div></div>
+    <div class="view" id="v-favs"><div class="scroll" id="favBox"></div></div>
+    <div class="view" id="v-history"><div class="scroll" id="historyBox"></div></div>
+  </div>
+
+  <div class="nav">
+    <button class="nb active" data-v="lyrics" onclick="showView('lyrics')"><span>🎤</span>Lyrics</button>
+    <button class="nb" data-v="results" onclick="showView('results')"><span>🔎</span>Gaane</button>
+    <button class="nb" data-v="favs" onclick="showView('favs')"><span>❤️</span>Pasand</button>
+    <button class="nb" data-v="history" onclick="showView('history')"><span>🕘</span>History</button>
+  </div>
+</div>
+
+<div class="karaoke" id="karaoke">
+  <div class="k-top"><div class="k-title" id="kTitle"></div><button class="icon-btn" onclick="closeKaraoke()" aria-label="Close">✕</button></div>
+  <div class="k-body">
+    <div class="k-prev" id="kPrev"></div>
+    <div><div class="k-o" id="kO">♪</div><div class="k-t" id="kT"></div></div>
+    <div class="k-next" id="kNext"></div>
+  </div>
+  <div class="k-foot">
+    <button class="ctl" onclick="playPrev()" aria-label="Previous">⏮</button>
+    <button class="ctl play" id="kPlay" onclick="togglePlay()" aria-label="Play or pause">▶</button>
+    <button class="ctl" onclick="playNext()" aria-label="Next">⏭</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeSheets()"></div>
+
+<div class="sheet" id="sheet">
+  <div class="grab"></div>
+  <h3>⚙️ Settings</h3>
+  <label class="field-label" for="langSelect">Translation Bhasha</label>
+  <select id="langSelect">
+    <option value="roman_both">Roman Hindi + Hindi Meaning</option>
+    <option value="hi">Hindi (Devanagari)</option>
+    <option value="hinglish">Hinglish</option>
+    <option value="en">English Meaning</option>
+    <option value="ko_hi">Korean (Romanized + Hindi Meaning)</option>
+    <option value="ja_hi">Japanese (Romaji + Hindi Meaning)</option>
+    <option value="es">Spanish</option>
+    <option value="fr">French</option>
+    <option value="de">German</option>
+    <option value="ar">Arabic</option>
+  </select>
+  <span class="field-label">App ka rang</span>
+  <div class="swatches" id="swatches">
+    <button class="sw" data-th="neon" aria-label="Neon"></button>
+    <button class="sw" data-th="sunset" aria-label="Sunset"></button>
+    <button class="sw" data-th="ocean" aria-label="Ocean"></button>
+    <button class="sw" data-th="orchid" aria-label="Orchid"></button>
+  </div>
+  <button class="pill green" onclick="saveSettings()">Save & Translate</button>
+  <div class="two">
+    <button class="mini" onclick="netTest()">🧪 Connection test</button>
+    <button class="mini" onclick="clearLyricCache()">🧹 Saved lyrics hatayein</button>
+  </div>
+  <div class="test-msg" id="netOut"></div>
+</div>
+
+<div class="sheet" id="adminSheet">
+  <div class="grab"></div>
+  <h3>🔐 Admin</h3>
+  <label class="field-label" for="apiKeyInput">Gemini API Key</label>
+  <div class="key-wrap">
+    <input type="password" id="apiKeyInput" placeholder="AIza…">
+    <button class="mini" type="button" onclick="toggleKeyVis(this)">👁️</button>
+    <button class="mini" type="button" onclick="testApiKey()">🧪</button>
+  </div>
+  <div class="test-msg" id="keyTestMsg"></div>
+  <button class="pill green" onclick="saveAdmin()">Save</button>
+  <div class="hint">Ye panel sirf aapko pata hai (logo par 7 baar tap). Key sirf is device mein save hoti hai.</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* Optional: apni Gemini key yahan daal sakte hain. Khali rakhein to free translator chalega. */
+var DEFAULT_GEMINI_KEY = "";
+
+var linesData = [], isSyncedLyrics = false, viewMode = 'both';
+var player = document.getElementById('player');
+var lyricsBox = document.getElementById('lyricsBox');
+var pauseAutoScrollUntil = 0, lastActiveIndex = -1, currentAudioUrl = null;
+var lyricToken = 0, translateToken = 0, searchToken = 0, syncOffset = 0;
+var lastResults = [], currentResultIdx = 0, fontScale = 1, seeking = false;
+var current = null, resultTracks = [], queue = [], qIdx = -1;
+var currentKey = '', currentChosenId = 0, sleepTimer = null, sleepIdx = 0, wakeLock = null;
+
+var memStore = {};
+var store = {
+  get: function(k){ try { var v = localStorage.getItem(k); return v === null ? (memStore[k] || null) : v; } catch(e){ return memStore[k] || null; } },
+  set: function(k,v){ memStore[k] = v; try { localStorage.setItem(k,v); } catch(e){} }
+};
+function $(id){ return document.getElementById(id); }
+function readJSON(k, d){ try { var v = JSON.parse(store.get(k)); return v == null ? d : v; } catch(e){ return d; } }
+function writeJSON(k, v){ try { store.set(k, JSON.stringify(v)); } catch(e){} }
+function getKey(){ return store.get('lv_key') || DEFAULT_GEMINI_KEY || ''; }
+function getLang(){ var l = store.get('lv_lang_v3') || 'roman_both'; return l === 'roman_only' ? 'roman_both' : l; }
+function keyOf(t){ return (String(t.title||'') + '|' + String(t.artist||'')).toLowerCase(); }
+
+/* app kabhi blank na ho */
+window.addEventListener('error', function(){ try { toast("Chhoti dikkat aayi, app chal raha hai 🙂"); } catch(e){} });
+window.addEventListener('unhandledrejection', function(e){ try { e.preventDefault(); } catch(x){} });
+
+(function init(){
+  $('langSelect').value = getLang();
+  applyTheme(store.get('lv_theme') || 'neon');
+  var f = parseFloat(store.get('lv_fs')); if (f) { fontScale = f; applyFont(); }
+  var sw = $('swatches').getElementsByClassName('sw');
+  for (var i=0;i<sw.length;i++) sw[i].onclick = function(){ applyTheme(this.getAttribute('data-th')); };
+  renderHistory(); renderFavs(); renderResults(); updateOnline();
+  window.addEventListener('online', updateOnline);
+  window.addEventListener('offline', updateOnline);
+  if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) { navigator.serviceWorker.register('sw.js').catch(function(){}); }
+  var taps = 0, tt;
+  $('brand').addEventListener('click', function(){
+    taps++; clearTimeout(tt); tt = setTimeout(function(){ taps = 0; }, 2000);
+    if (taps >= 7) { taps = 0; $('apiKeyInput').value = store.get('lv_key') || ''; openSheet('adminSheet'); }
+  });
+  document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible' && $('karaoke').classList.contains('show')) requestWake(); });
+})();
+
+function applyTheme(n){
+  if (['neon','sunset','ocean','orchid'].indexOf(n) < 0) n = 'neon';
+  document.documentElement.setAttribute('data-accent', n); store.set('lv_theme', n);
+  var sw = $('swatches').getElementsByClassName('sw');
+  for (var i=0;i<sw.length;i++) sw[i].className = 'sw' + (sw[i].getAttribute('data-th') === n ? ' on' : '');
+}
+function updateOnline(){ $('offline').className = 'offline' + (navigator.onLine === false ? ' show' : ''); }
+lyricsBox.addEventListener('touchstart', function(){ pauseAutoScrollUntil = Date.now() + 5000; }, {passive:true});
+lyricsBox.addEventListener('wheel', function(){ pauseAutoScrollUntil = Date.now() + 5000; }, {passive:true});
+
+function setStatus(msg, type){ var el=$('status'); el.textContent=msg; el.className='status'+(type?' '+type:''); }
+function toast(msg){ var t=$('toast'); t.textContent=msg; t.className='toast show'; clearTimeout(toast._t); toast._t=setTimeout(function(){t.className='toast';},2300); }
+function openSheet(id){ $('netOut').textContent=''; $(id).className='sheet show'; $('overlay').className='overlay show'; }
+function closeSheets(){ $('sheet').className='sheet'; $('adminSheet').className='sheet'; $('overlay').className='overlay'; }
+function toggleKeyVis(btn){ var i=$('apiKeyInput'); if(i.type==='password'){ i.type='text'; btn.textContent='🙈'; } else { i.type='password'; btn.textContent='👁️'; } }
+function saveSettings(){ store.set('lv_lang_v3', $('langSelect').value); closeSheets(); if (linesData.length) translateAll(); else toast("Settings save ho gayi ✅"); }
+function saveAdmin(){ store.set('lv_key', $('apiKeyInput').value.trim()); closeSheets(); toast("Admin settings save ✅"); if (linesData.length) translateAll(true); }
+function clearLyricCache(){ writeJSON('lv_lc', {}); toast("Saved lyrics hat gayi ✅"); }
+
+function showView(v){
+  ['lyrics','results','favs','history'].forEach(function(n){ $('v-'+n).className = 'view' + (n===v?' show':''); });
+  var b = document.getElementsByClassName('nb');
+  for (var i=0;i<b.length;i++) b[i].className = 'nb' + (b[i].getAttribute('data-v')===v ? ' active' : '');
+  if (v === 'history') renderHistory(); if (v === 'favs') renderFavs();
+}
+function setMode(m, btn){
+  viewMode = m; var tabs = document.getElementsByClassName('tab');
+  for (var i=0;i<tabs.length;i++) tabs[i].className='tab';
+  btn.className='tab active'; drawLyrics(); lastActiveIndex=-1; updateActiveLine();
+}
+function changeFont(d){ fontScale = Math.min(1.7, Math.max(0.7, Math.round((fontScale+d)*10)/10)); store.set('lv_fs', String(fontScale)); applyFont(); }
+function applyFont(){ document.documentElement.style.setProperty('--fs', fontScale); }
+
+/* ---------- network (timeout + retry + proxy fallback) ---------- */
+function fetchDirect(url, opts, tries, timeoutMs){
+  tries = tries == null ? 2 : tries; timeoutMs = timeoutMs || 12000;
+  return new Promise(function(resolve, reject){
+    var attempt = 0;
+    function go(){
+      attempt++;
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = setTimeout(function(){ if (ctrl) ctrl.abort(); }, timeoutMs);
+      var o = opts ? Object.assign({}, opts) : {};
+      if (ctrl) o.signal = ctrl.signal;
+      fetch(url, o).then(function(res){
+        clearTimeout(timer);
+        if (!res.ok) { var e = new Error("HTTP " + res.status); e.http = res.status; throw e; }
+        return res.json();
+      }).then(resolve).catch(function(err){
+        clearTimeout(timer);
+        if (attempt <= tries && !(err.http && err.http >= 400 && err.http < 500 && err.http !== 429)) setTimeout(go, 500 * attempt);
+        else reject(err);
+      });
+    }
+    go();
+  });
+}
+var PROXIES = [
+  function(u){ return "https://corsproxy.io/?url=" + encodeURIComponent(u); },
+  function(u){ return "https://api.allorigins.win/raw?url=" + encodeURIComponent(u); }
+];
+function fetchJSON(url, opts, tries, timeoutMs){
+  return fetchDirect(url, opts, tries, timeoutMs).catch(function(err){
+    if (err && err.http) throw err;
+    if (opts && opts.method && opts.method !== 'GET') throw err;
+    var i = 0;
+    function nextProxy(){ if (i >= PROXIES.length) throw err; return fetchDirect(PROXIES[i++](url), null, 0, 14000).catch(nextProxy); }
+    return nextProxy();
+  });
+}
+function netHelp(err){
+  var m = (err && err.message) || '';
+  if (/Failed to fetch|NetworkError|Load failed|abort/i.test(m)) return (location.protocol === 'file:') ? "App ko https link se kholein" : "Internet / VPN / AdBlock check karein";
+  return m;
+}
+function netTest(){
+  var out = $('netOut'), lines = ["Online: " + (navigator.onLine !== false ? "haan" : "nahi"), "Page: " + (location.protocol === 'file:' ? "local file" : location.host)];
+  out.textContent = "Test chal raha hai…";
+  var hosts = [["Lyrics (lrclib)","https://lrclib.net/api/search?q=test"],["Gaane (iTunes)","https://itunes.apple.com/search?term=test&limit=1"],["Translate","https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=hi&dt=t&q=hello"]];
+  var n = 0;
+  hosts.forEach(function(h){
+    fetchDirect(h[1], null, 0, 8000).then(function(){ lines.push("✅ " + h[0]); })
+    .catch(function(e){ lines.push("❌ " + h[0] + " (" + e.message + ")"); })
+    .then(function(){ if (++n === hosts.length) out.textContent = lines.join("\n"); });
+  });
+}
+
+/* ---------- player ---------- */
+function fmt(t){ if(!isFinite(t)) return '0:00'; var m=Math.floor(t/60), s=Math.floor(t%60); return m+':'+(s<10?'0':'')+s; }
+function hasSrc(){ return !!player.getAttribute('src'); }
+function togglePlay(){ if (!hasSrc()) { toast("Pehle gaana search karein 🔎"); return; } if (player.paused) player.play().catch(function(){}); else player.pause(); }
+function skip(s){ if (hasSrc()) player.currentTime = Math.max(0, Math.min(player.duration||1e9, player.currentTime + s)); }
+function setPlayIcon(p){ $('playBtn').textContent = p ? '⏸' : '▶'; $('kPlay').textContent = p ? '⏸' : '▶'; $('disc').classList.toggle('spin', p); }
+player.addEventListener('play', function(){ setPlayIcon(true); });
+player.addEventListener('pause', function(){ setPlayIcon(false); });
+player.addEventListener('ended', function(){ setPlayIcon(false); playNext(true); });
+player.addEventListener('loadedmetadata', function(){ $('durT').textContent = fmt(player.duration); });
+player.addEventListener('error', function(){
+  if (!hasSrc()) return;
+  setStatus("Ye gaana play nahi ho paya. 'Gaane' tab se doosra chunein.", "error");
+});
+var seekBar = $('seekBar');
+seekBar.addEventListener('input', function(){ seeking = true; seekBar.style.setProperty('--p', (seekBar.value/10)+'%'); if (player.duration) $('curT').textContent = fmt(player.duration * seekBar.value/1000); });
+seekBar.addEventListener('change', function(){ if (player.duration) player.currentTime = player.duration * seekBar.value/1000; seeking = false; });
+player.ontimeupdate = function(){
+  if (!seeking && player.duration) {
+    var p = player.currentTime / player.duration * 1000;
+    seekBar.value = p; seekBar.style.setProperty('--p', (p/10)+'%'); $('curT').textContent = fmt(player.currentTime);
+  }
+  updateActiveLine();
+};
+function setMediaSession(t){
+  if (!('mediaSession' in navigator)) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({ title: t.title || '', artist: t.artist || '', artwork: t.art ? [{src: t.art, sizes: '300x300'}] : [] });
+    navigator.mediaSession.setActionHandler('play', function(){ player.play(); });
+    navigator.mediaSession.setActionHandler('pause', function(){ player.pause(); });
+    navigator.mediaSession.setActionHandler('previoustrack', function(){ playPrev(); });
+    navigator.mediaSession.setActionHandler('nexttrack', function(){ playNext(); });
+  } catch(e){}
+}
+
+/* ---------- queue ---------- */
+function setQueue(list, idx){ queue = list.slice(); qIdx = idx; }
+function playNext(auto){
+  if (qIdx + 1 < queue.length) { qIdx++; playTrack(queue[qIdx]); }
+  else if (!auto) toast("Aage koi gaana nahi hai");
+}
+function playPrev(){
+  if (player.currentTime > 4) { player.currentTime = 0; return; }
+  if (qIdx > 0) { qIdx--; playTrack(queue[qIdx]); } else if (hasSrc()) player.currentTime = 0;
+}
+function playFromList(list, i){
+  var playable = [], at = 0;
+  list.forEach(function(t, n){ if (t.url) { if (n === i) at = playable.length; playable.push(t); } });
+  var t = list[i];
+  if (t && t.url) { setQueue(playable, at); playTrack(t); showView('lyrics'); }
+  else if (t) { $('searchInput').value = t.title; manualSearch(); }
+}
+
+/* ---------- search ---------- */
+function normWords(s){ return String(s||'').toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,' ').split(/\s+/).filter(Boolean); }
+function matchesAll(q, t){ var hay = (t.title + ' ' + t.artist).toLowerCase(), w = normWords(q); return w.length > 0 && w.every(function(x){ return hay.indexOf(x) !== -1; }); }
+function searchItunes(q){
+  return fetchJSON("https://itunes.apple.com/search?media=music&entity=song&limit=12&country=IN&term=" + encodeURIComponent(q), null, 1, 9000)
+    .then(function(d){
+      var out = [];
+      (d.results || []).forEach(function(r){ if (!r.previewUrl) return;
+        out.push({ title:r.trackName, artist:r.artistName, art:(r.artworkUrl100||'').replace('100x100','300x300'), src:'preview', url:r.previewUrl, duration:(r.trackTimeMillis||0)/1000 }); });
+      return out;
+    }).catch(function(){ return []; });
+}
+function searchAudius(q){
+  return fetchJSON("https://api.audius.co/v1/tracks/search?limit=8&app_name=LyricVerse&query=" + encodeURIComponent(q), null, 1, 9000)
+    .then(function(d){
+      var out = [];
+      (d.data || []).forEach(function(r){ if (r.is_streamable === false) return;
+        out.push({ title:r.title, artist:(r.user && r.user.name) || '', art:(r.artwork && (r.artwork['480x480'] || r.artwork['150x150'])) || '', src:'full', url:"https://api.audius.co/v1/tracks/" + r.id + "/stream?app_name=LyricVerse", duration:r.duration || 0 }); });
+      return out;
+    }).catch(function(){ return []; });
+}
+function manualSearch(){
+  var q = $('searchInput').value.trim();
+  if (!q) { setStatus("Gaane ka naam likhein.", "warn"); return; }
+  $('searchInput').blur();
+  var tok = ++searchToken;
+  $('songTitle').textContent = q; setStatus("Gaana dhoondh raha hoon…", "");
+  var rb = $('resultsBox'); rb.innerHTML = ''; var m = document.createElement('div'); m.className = 'empty-msg'; m.textContent = 'Dhoondh raha hoon…'; rb.appendChild(m);
+  Promise.all([searchAudius(q), searchItunes(q)]).then(function(r){
+    if (tok !== searchToken) return;
+    var full = r[0], prev = r[1], best = null;
+    for (var i=0;i<full.length;i++) if (matchesAll(q, full[i])) { best = full[i]; break; }
+    if (!best && prev.length) best = prev[0];
+    if (!best && full.length) best = full[0];
+    resultTracks = [];
+    if (best) resultTracks.push(best);
+    full.concat(prev).forEach(function(t){ if (t !== best) resultTracks.push(t); });
+    renderResults();
+    if (best) { setQueue(resultTracks, 0); playTrack(best); showView('lyrics'); }
+    else {
+      showView('lyrics');
+      var off = (navigator.onLine === false);
+      setStatus(off ? "Internet nahi hai." : "Gaana nahi mila. Sirf lyrics dhoondh raha hoon…", off ? "error" : "warn");
+      if (!off) { current = null; findLyrics({ title:q, artist:'', src:'none' }); }
+    }
+  }).catch(function(){ setStatus("Search mein dikkat aayi. Dobara try karein.", "error"); });
+}
+
+/* ---------- lists ---------- */
+function tagEl(src){
+  var s = document.createElement('span');
+  if (src === 'full') { s.className = 'tag full'; s.textContent = 'FULL'; }
+  else if (src === 'preview') { s.className = 'tag prev'; s.textContent = '30s'; }
+  else if (src === 'local') { s.className = 'tag loc'; s.textContent = 'PHONE'; }
+  else return null;
+  return s;
+}
+function itemEl(t, sub, onClick, onRemove, isCur){
+  var d = document.createElement('div'); d.className = 'item' + (isCur ? ' cur' : '');
+  var a = document.createElement('div'); a.className = 'art';
+  if (t.art) a.style.backgroundImage = 'url("' + String(t.art).replace(/"/g,'%22') + '")'; else a.textContent = '🎵';
+  var info = document.createElement('div'); info.className = 'info';
+  var tt = document.createElement('div'); tt.className = 't'; tt.textContent = t.title || '';
+  var tg = tagEl(t.src); if (tg) tt.appendChild(tg);
+  var aa = document.createElement('div'); aa.className = 'a'; aa.textContent = sub;
+  info.appendChild(tt); info.appendChild(aa); d.appendChild(a); d.appendChild(info);
+  if (onRemove) { var x = document.createElement('button'); x.className = 'x'; x.textContent = '✕'; x.setAttribute('aria-label','Hatayein'); x.onclick = function(e){ e.stopPropagation(); onRemove(); }; d.appendChild(x); }
+  d.onclick = onClick;
+  return d;
+}
+function emptyBox(box, icon, text){ box.innerHTML = ''; var m = document.createElement('div'); m.className = 'empty-msg'; var b = document.createElement('span'); b.className = 'big'; b.textContent = icon; m.appendChild(b); m.appendChild(document.createTextNode(text)); box.appendChild(m); }
+function renderResults(){
+  var box = $('resultsBox');
+  if (!resultTracks.length) { emptyBox(box, '🔎', 'Search karne par gaane yahan dikhenge.'); return; }
+  box.innerHTML = '';
+  resultTracks.forEach(function(t, i){
+    box.appendChild(itemEl(t, t.artist || '', function(){ playFromList(resultTracks, i); }, null, current && current.url === t.url));
+  });
+}
+
+/* ---------- play ---------- */
+function playTrack(t, noHistory){
+  current = t; syncOffset = 0; $('offsetVal').textContent = '0.0s';
+  if (currentAudioUrl) { try { URL.revokeObjectURL(currentAudioUrl); } catch(e){} currentAudioUrl = null; }
+  if (t.src === 'local' && t.file) { currentAudioUrl = URL.createObjectURL(t.file); player.src = currentAudioUrl; }
+  else if (t.url) player.src = t.url;
+  else { player.removeAttribute('src'); }
+  $('songTitle').textContent = t.title + (t.artist ? " — " + t.artist : "");
+  $('disc').style.backgroundImage = t.art ? 'url("' + String(t.art).replace(/"/g,'%22') + '")' : '';
+  $('kTitle').textContent = $('songTitle').textContent;
+  if (t.url || t.file) { var p = player.play(); if (p && p.catch) p.catch(function(){ setStatus("▶ dabaein (browser ne auto-play roka)", "warn"); }); }
+  setMediaSession(t); updateFavBtn();
+  if (!noHistory) addHistory(t);
+  renderResults();
+  if (t.src === 'preview') toast("30s preview hai. Sync ke liye sunai de rahi line par tap karein");
+  findLyrics(t);
+}
+function onFilePick(input){
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  var title = cleanName(file.name) || file.name.replace(/\.[^/.]+$/, "");
+  $('searchInput').value = title;
+  var t = { title:title, artist:'', art:'', src:'local', file:file, url:'', duration:0 };
+  setQueue([t], 0); playTrack(t); showView('lyrics');
+}
+function cleanName(name){
+  return name.replace(/\.[^/.]+$/, "").replace(/\(.*?\)|\[.*?\]/g, " ")
+    .replace(/\b(official|video|audio|lyrics|lyric|mp3|song|full|hd|4k|128k|320k|128kbps|320kbps|kbps|yt1s|pagalworld|djpunjab|mrjatt|wapking)\b/gi, " ")
+    .replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+/* ---------- History & Favorites ---------- */
+function slimTrack(t){ return { k:keyOf(t) + '|' + t.src, title:t.title, artist:t.artist || '', art:t.art || '', src:t.src, url:(t.src === 'local' ? '' : t.url), duration:t.duration || 0 }; }
+function getHistory(){ return readJSON('lv_hist', []); }
+function setHistory(h){ writeJSON('lv_hist', h.slice(0, 150)); }
+function addHistory(t){
+  var s = slimTrack(t), plays = 1;
+  var h = getHistory().filter(function(x){ if (x.k === s.k) { plays = (x.plays || 1) + 1; return false; } return true; });
+  s.ts = Date.now(); s.plays = plays; h.unshift(s); setHistory(h); renderHistory();
+}
+function fmtAgo(ts){
+  var s = Math.floor((Date.now()-ts)/1000);
+  if (s < 60) return 'abhi'; if (s < 3600) return Math.floor(s/60)+' min pehle'; if (s < 86400) return Math.floor(s/3600)+' ghante pehle';
+  var d = new Date(ts); return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
+}
+function renderHistory(){
+  var box = $('historyBox'), h = getHistory();
+  if (!h.length) { emptyBox(box, '🕘', 'Abhi koi history nahi. Jo gaane aap sunenge yahan dikhenge.'); return; }
+  box.innerHTML = '';
+  var head = document.createElement('div'); head.className = 'head-row';
+  var c = document.createElement('span'); c.textContent = h.length + ' gaane';
+  var b = document.createElement('button'); b.className = 'mini'; b.textContent = '🗑 Sab hatayein';
+  b.onclick = function(){ if (b.getAttribute('data-sure')) { setHistory([]); renderHistory(); } else { b.setAttribute('data-sure','1'); b.textContent = 'Pakka? Dobara dabaein'; setTimeout(function(){ b.removeAttribute('data-sure'); b.textContent = '🗑 Sab hatayein'; }, 3000); } };
+  head.appendChild(c); head.appendChild(b); box.appendChild(head);
+  h.forEach(function(t, i){
+    var sub = (t.artist ? t.artist + ' • ' : '') + fmtAgo(t.ts) + (t.plays > 1 ? ' • ' + t.plays + '×' : '');
+    box.appendChild(itemEl(t, sub, function(){ playFromList(h, i); }, function(){ setHistory(getHistory().filter(function(x){ return x.k !== t.k; })); renderHistory(); }));
+  });
+}
+function getFavs(){ return readJSON('lv_fav', []); }
+function isFav(t){ if (!t) return false; var k = slimTrack(t).k; return getFavs().some(function(x){ return x.k === k; }); }
+function updateFavBtn(){ var on = isFav(current); var b = $('favBtn'); b.textContent = on ? '♥' : '♡'; b.className = 'ctl' + (on ? ' on' : ''); }
+function toggleFav(){
+  if (!current) { toast("Pehle gaana chalayein"); return; }
+  var s = slimTrack(current), f = getFavs(), had = f.some(function(x){ return x.k === s.k; });
+  if (had) f = f.filter(function(x){ return x.k !== s.k; }); else { s.ts = Date.now(); f.unshift(s); }
+  writeJSON('lv_fav', f); updateFavBtn(); renderFavs(); toast(had ? "Pasand se hata diya" : "Pasand mein jod diya ❤️");
+}
+function renderFavs(){
+  var box = $('favBox'), f = getFavs();
+  if (!f.length) { emptyBox(box, '❤️', 'Abhi koi pasandida gaana nahi. Player mein ♡ dabakar jodein.'); return; }
+  box.innerHTML = '';
+  f.forEach(function(t, i){
+    box.appendChild(itemEl(t, t.artist || '', function(){ playFromList(f, i); }, function(){ writeJSON('lv_fav', getFavs().filter(function(x){ return x.k !== t.k; })); updateFavBtn(); renderFavs(); }));
+  });
+}
+
+/* ---------- sleep timer ---------- */
+function cycleSleep(){
+  var opts = [0, 15, 30, 60]; sleepIdx = (sleepIdx + 1) % opts.length;
+  clearTimeout(sleepTimer); var m = opts[sleepIdx];
+  $('sleepBtn').textContent = m ? '😴 ' + m : '😴';
+  if (m) { sleepTimer = setTimeout(function(){ try { player.pause(); } catch(e){} sleepIdx = 0; $('sleepBtn').textContent = '😴'; toast("Sleep timer: gaana band 🌙"); }, m * 60000); toast("Gaana " + m + " min baad band hoga"); }
+  else toast("Sleep timer band");
+}
+
+/* ---------- karaoke ---------- */
+function requestWake(){ try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function(l){ wakeLock = l; }).catch(function(){}); } catch(e){} }
+function openKaraoke(){ $('karaoke').className = 'karaoke show'; requestWake(); lastActiveIndex = -1; updateActiveLine(); refreshKaraoke(); }
+function closeKaraoke(){ $('karaoke').className = 'karaoke'; try { if (wakeLock) wakeLock.release(); } catch(e){} wakeLock = null; }
+function refreshKaraoke(){
+  if (!$('karaoke').classList.contains('show')) return;
+  if (!linesData.length) { $('kPrev').textContent = ''; $('kO').textContent = '♪'; $('kT').textContent = 'Lyrics ka intezaar…'; $('kNext').textContent = ''; return; }
+  if (!isSyncedLyrics) { $('kPrev').textContent = ''; $('kO').textContent = 'Is gaane ke lyrics synced nahi hain'; $('kT').textContent = 'Lyrics tab mein padh sakte hain'; $('kNext').textContent = ''; return; }
+  var i = lastActiveIndex, L = linesData;
+  $('kPrev').textContent = (i > 0) ? L[i-1].orig : '';
+  $('kO').textContent = (i >= 0) ? L[i].orig : '♪';
+  $('kT').textContent = (i >= 0 && viewMode !== 'orig' && L[i].trans) ? L[i].trans : '';
+  $('kNext').textContent = (i + 1 < L.length) ? L[i+1].orig : '';
+}
+
+/* ---------- lyrics (saved cache + network) ---------- */
+function cachePut(k, patch){
+  var c = readJSON('lv_lc', {}), e = c[k] || {};
+  if (patch.lyr) e.lyr = patch.lyr;
+  if (patch.tr) { e.tr = e.tr || {}; for (var x in patch.tr) e.tr[x] = patch.tr[x]; var ks = Object.keys(e.tr); while (ks.length > 3) delete e.tr[ks.shift()]; }
+  e.ts = Date.now(); c[k] = e;
+  var keys = Object.keys(c).sort(function(a,b){ return (c[b].ts||0) - (c[a].ts||0); });
+  for (var i=30;i<keys.length;i++) delete c[keys[i]];
+  writeJSON('lv_lc', c);
+}
+function slimLyr(l){ var o = { id:l.id||0, trackName:l.trackName||'', artistName:l.artistName||'', duration:l.duration||0 }; if (l.syncedLyrics) o.syncedLyrics = l.syncedLyrics; else o.plainLyrics = l.plainLyrics || ''; return o; }
+function validLyrics(data){ var v = []; if (Array.isArray(data)) for (var i=0;i<data.length;i++) if (data[i] && (data[i].syncedLyrics || data[i].plainLyrics)) v.push(data[i]); return v; }
+function resetLyricUI(){
+  linesData = []; lastActiveIndex = -1; lastResults = []; currentResultIdx = 0;
+  ['switchBtn','dlBtn','retransBtn','copyBtn'].forEach(function(id){ $(id).style.display = 'none'; });
+  refreshKaraoke();
+}
+function findLyrics(t){
+  var tok = ++lyricToken; translateToken++;
+  resetLyricUI(); currentKey = keyOf(t); currentChosenId = 0;
+  var cached = readJSON('lv_lc', {})[currentKey];
+  if (cached && cached.lyr) { lastResults = [cached.lyr]; updateSwitchButton(); applyLyricEntry(cached.lyr, t); return; }
+  emptyBox(lyricsBox, '🔎', 'Lyrics dhoondh raha hoon…');
+  if (t.src !== 'preview') setStatus("Lyrics dhoondh raha hoon…", "");
+  var base = "https://lrclib.net/api/search?", tries = [];
+  if (t.artist) tries.push(base + "track_name=" + encodeURIComponent(t.title) + "&artist_name=" + encodeURIComponent(t.artist));
+  tries.push(base + "q=" + encodeURIComponent((t.title + ' ' + (t.artist||'')).trim()));
+  tries.push(base + "q=" + encodeURIComponent(t.title));
+  var uniq = tries.filter(function(u, i){ return tries.indexOf(u) === i; }), lastErr = null, anyOk = false;
+  function step(i){
+    if (tok !== lyricToken) return;
+    if (i >= uniq.length) {
+      if (!anyOk && lastErr) {
+        setStatus("Lyrics load nahi hue: " + netHelp(lastErr), "error");
+        emptyBox(lyricsBox, '📡', 'Lyrics server tak pahunch nahi paya.');
+        var b = document.createElement('button'); b.className = 'mini'; b.textContent = '🔁 Dobara try karein'; b.onclick = retryLyrics;
+        var m = lyricsBox.firstChild; m.appendChild(document.createElement('br')); m.appendChild(document.createElement('br')); m.appendChild(b);
+      } else {
+        setStatus("Is gaane ke lyrics nahi mile.", "warn");
+        emptyBox(lyricsBox, '😕', 'Is gaane ke lyrics nahi mile. Naam ke saath artist ka naam likh kar try karein.');
+      }
+      return;
+    }
+    fetchJSON(uniq[i], null, 2, 12000).then(function(data){
+      if (tok !== lyricToken) return;
+      anyOk = true;
+      var valid = validLyrics(data);
+      if (!valid.length) { step(i+1); return; }
+      var target = t.duration || (player.duration && isFinite(player.duration) ? player.duration : 0);
+      valid.sort(function(a,b){
+        var as = a.syncedLyrics ? 1 : 0, bs = b.syncedLyrics ? 1 : 0; if (as !== bs) return bs - as;
+        if (target > 0 && a.duration && b.duration) return Math.abs(a.duration-target) - Math.abs(b.duration-target);
+        return 0;
+      });
+      lastResults = valid; currentResultIdx = 0; updateSwitchButton();
+      cachePut(currentKey, { lyr: slimLyr(valid[0]) });
+      applyLyricEntry(valid[0], t);
+    }).catch(function(err){ if (tok !== lyricToken) return; lastErr = err; step(i+1); });
+  }
+  step(0);
+}
+function retryLyrics(){ if (current) findLyrics(current); else if ($('searchInput').value.trim()) manualSearch(); }
+function updateSwitchButton(){ var b = $('switchBtn'); if (lastResults.length > 1) { b.style.display = 'inline-block'; b.textContent = '🔄 Lyrics (' + (currentResultIdx+1) + '/' + lastResults.length + ')'; } else b.style.display = 'none'; }
+function switchMatch(){ if (lastResults.length <= 1) return; currentResultIdx = (currentResultIdx+1) % lastResults.length; updateSwitchButton(); applyLyricEntry(lastResults[currentResultIdx], current); }
+function applyLyricEntry(chosen, t){
+  translateToken++; lastActiveIndex = -1; currentChosenId = chosen.id || 0;
+  if (chosen.trackName && (!t || t.src === 'local' || t.src === 'none')) { $('songTitle').textContent = chosen.trackName + (chosen.artistName ? " — " + chosen.artistName : ""); $('kTitle').textContent = $('songTitle').textContent; }
+  if (chosen.syncedLyrics) { linesData = parseSynced(chosen.syncedLyrics); isSyncedLyrics = true; }
+  else {
+    var raw = String(chosen.plainLyrics || '').split('\n'); linesData = [];
+    for (var j=0;j<raw.length;j++){ var x = raw[j].trim(); if (x !== '') linesData.push({time:null, orig:x, trans:""}); }
+    isSyncedLyrics = false;
+  }
+  var has = linesData.length > 0;
+  $('dlBtn').style.display = has ? 'inline-block' : 'none';
+  $('retransBtn').style.display = has ? 'inline-block' : 'none';
+  $('copyBtn').style.display = has ? 'inline-block' : 'none';
+  if (!has) { emptyBox(lyricsBox, '😕', 'Is gaane ke lyrics khali hain. 🔄 se doosre lyrics try karein.'); return; }
+  drawLyrics(); updateActiveLine(); translateAll();
+}
+function parseSynced(lrcText){
+  var arr = String(lrcText).split('\n'), out = [], off = 0;
+  for (var i=0;i<arr.length;i++){
+    var line = arr[i].trim(); if (!line) continue;
+    var om = line.match(/^\[offset:\s*([+-]?\d+)\]/i);
+    if (om) { off = parseInt(om[1],10)/1000; continue; }
+    var re = /\[(\d{1,3}):(\d{2})(?:\.(\d{1,3}))?\]/g, ts = [], m;
+    while ((m = re.exec(line)) !== null) {
+      var ms = m[3] ? m[3].padEnd(3,'0').slice(0,3) : '000';
+      ts.push(Math.max(0, parseInt(m[1],10)*60 + parseInt(m[2],10) + parseInt(ms,10)/1000 - off));
+    }
+    if (ts.length){
+      var text = line.replace(/\[(\d{1,3}):(\d{2})(?:\.(\d{1,3}))?\]/g,'').trim();
+      if (text !== '') for (var k=0;k<ts.length;k++) out.push({time:ts[k], orig:text, trans:""});
+    }
+  }
+  out.sort(function(a,b){ return a.time - b.time; });
+  return out;
+}
+
+/* ---------- Devanagari -> Roman ---------- */
+function devanagariToRoman(str){
+  if (!str) return "";
+  var vowels={'अ':'a','आ':'aa','इ':'i','ई':'ee','उ':'u','ऊ':'oo','ऋ':'ri','ए':'e','ऐ':'ai','ओ':'o','औ':'au','ऑ':'o','ऍ':'e'};
+  var matras={'ा':'aa','ि':'i','ी':'ee','ु':'u','ू':'oo','ृ':'ri','े':'e','ै':'ai','ो':'o','ौ':'au','ॉ':'o','ॅ':'e'};
+  var cons={'क':'k','ख':'kh','ग':'g','घ':'gh','ङ':'ng','च':'ch','छ':'chh','ज':'j','झ':'jh','ञ':'ny','ट':'t','ठ':'th','ड':'d','ढ':'dh','ण':'n','त':'t','थ':'th','द':'d','ध':'dh','न':'n','प':'p','फ':'ph','ब':'b','भ':'bh','म':'m','य':'y','र':'r','ल':'l','व':'v','श':'sh','ष':'sh','स':'s','ह':'h','क़':'q','ख़':'kh','ग़':'gh','ज़':'z','ड़':'r','ढ़':'rh','फ़':'f','य़':'y'};
+  var nukta={'क':'q','ख':'kh','ग':'gh','ज':'z','ड':'r','ढ':'rh','फ':'f','य':'y'};
+  var extra={'ं':'n','ँ':'n','ः':'h','ऽ':"'",'।':'.','॥':'.'};
+  var out="", chars=Array.from(str);
+  for (var i=0;i<chars.length;i++){
+    var ch=chars[i];
+    if (vowels[ch]) out+=vowels[ch];
+    else if (cons[ch]){
+      var base=cons[ch], next=chars[i+1];
+      if (next==='़' && nukta[ch]) { base=nukta[ch]; i++; next=chars[i+1]; }
+      if (next==='्') { out+=base; i++; }
+      else if (matras[next]) { out+=base+matras[next]; i++; }
+      else { var nw = next && (cons[next]||vowels[next]||extra[next]); out += nw ? base+'a' : base; }
+    } else if (extra[ch]) out+=extra[ch];
+    else if (ch!=='़' && ch!=='्') out+=ch;
+  }
+  return out.replace(/\s+/g,' ').trim();
+}
+function getLangLabel(code){
+  var map={'roman_both':'Roman Hindi pronunciation and simple Hindi meaning in brackets','hi':'Hindi Devanagari translation','hinglish':'natural Hinglish (Roman Hindi) translation','en':'simple English meaning','ko_hi':'Romanized Korean pronunciation with simple Hindi meaning','ja_hi':'Romaji Japanese pronunciation with simple Hindi meaning','es':'Spanish translation','fr':'French translation','de':'German translation','ar':'Arabic translation'};
+  return map[code] || map.roman_both;
+}
+function getGoogleTargetCode(c){ return (c==='en'||c==='es'||c==='fr'||c==='de'||c==='ar') ? c : 'hi'; }
+
+/* ---------- translate ---------- */
+function trKey(lang){ return lang + '|' + currentChosenId; }
+function saveTr(lang){
+  var arr = linesData.map(function(l){ return l.trans || ''; });
+  var filled = arr.filter(Boolean).length;
+  if (filled >= arr.length * 0.8) { var p = {}; p[trKey(lang)] = arr; cachePut(currentKey, { tr: p }); }
+}
+function translateAll(force){
+  if (!linesData.length) return;
+  var tok = ++translateToken, key = getKey(), lang = getLang();
+  if (!force) {
+    var c = readJSON('lv_lc', {})[currentKey], hit = c && c.tr && c.tr[trKey(lang)];
+    if (hit && hit.length === linesData.length) {
+      for (var i=0;i<hit.length;i++) linesData[i].trans = hit[i];
+      drawLyrics(); lastActiveIndex = -1; updateActiveLine(); setStatus("Lyrics ready ✅", ""); return;
+    }
+  }
+  for (var j=0;j<linesData.length;j++) linesData[j].trans = '';
+  if (key) translateWithGemini(tok, key, lang, true); else translateWithFreeEngine(tok, lang, "Translate ho raha hai…");
+}
+function translateWithGemini(tok, key, lang, allowFree){
+  setStatus("AI se translate ho raha hai…", "");
+  var list = ""; for (var i=0;i<linesData.length;i++) list += i + ": " + linesData[i].orig + "\n";
+  var prompt = "Translate/convert each numbered song lyric line below into " + getLangLabel(lang) + ".\nRules:\n1. Keep the exact same number prefix (0:, 1:, 2:, etc.).\n2. Return ONLY the numbered lines.\n\n" + list;
+  var models = ['gemini-3.5-flash-lite','gemini-3.6-flash','gemini-3.8-flash'];
+  function tryModel(idx, lastErr){
+    if (tok !== translateToken) return;
+    if (idx >= models.length){ if (allowFree) translateWithFreeEngine(tok, lang, "Translate ho raha hai…"); else setStatus("Translate error: " + lastErr, "error"); return; }
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(models[idx]) + ":generateContent?key=" + encodeURIComponent(key);
+    fetch(url, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ contents:[{role:"user", parts:[{text:prompt}]}] }) })
+    .then(function(res){ return res.json().then(function(d){ return {ok:res.ok,status:res.status,data:d}; }); })
+    .then(function(resp){
+      if (tok !== translateToken) return;
+      var cand = resp.data && resp.data.candidates && resp.data.candidates[0];
+      var parts = cand && cand.content && cand.content.parts, reply = "";
+      if (parts) for (var p=0;p<parts.length;p++) if (parts[p].text && !parts[p].thought) reply += parts[p].text;
+      if (!resp.ok || !reply.trim()){ tryModel(idx+1, (resp.data && resp.data.error && resp.data.error.message) || ("HTTP "+resp.status)); return; }
+      reply = reply.replace(/```[a-z]*\n?/gi,'').replace(/```/g,'');
+      var rl = reply.split('\n'), matched = 0;
+      for (var j=0;j<rl.length;j++){
+        var mt = rl[j].trim().match(/^(\d+)\s*[:.)-]\s*(.*)/);
+        if (mt){ var li = parseInt(mt[1],10); if (linesData[li] && mt[2].trim()){ linesData[li].trans = mt[2].trim(); matched++; } }
+      }
+      if (!matched){ tryModel(idx+1, "Empty parse"); return; }
+      drawLyrics(); lastActiveIndex = -1; updateActiveLine(); setStatus("Lyrics ready ✅", ""); saveTr(lang);
+    }).catch(function(err){ if (tok !== translateToken) return; tryModel(idx+1, err.message); });
+  }
+  tryModel(0, "");
+}
+function freeTranslateChunk(text, tl){
+  var url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=" + encodeURIComponent(tl) + "&dt=t&q=" + encodeURIComponent(text);
+  return fetchJSON(url, null, 1, 10000).then(function(d){
+    if (!Array.isArray(d) || !Array.isArray(d[0])) throw new Error("Bad response");
+    var o = ""; for (var i=0;i<d[0].length;i++) if (d[0][i] && d[0][i][0]) o += d[0][i][0]; return o;
+  });
+}
+function formatFreeResult(orig, tr, lang){
+  var dO = /[ऀ-ॿ]/.test(orig), dT = /[ऀ-ॿ]/.test(tr);
+  if (lang==='roman_both'||lang==='hinglish'||lang==='ko_hi'||lang==='ja_hi'){
+    if (dO) return devanagariToRoman(orig);
+    if (dT){ var rom = devanagariToRoman(tr); return (lang==='hinglish') ? rom : (rom + "  •  " + tr); }
+    return tr;
+  }
+  return tr;
+}
+function translateWithFreeEngine(tok, lang, startMsg){
+  setStatus(startMsg, "");
+  var tl = getGoogleTargetCode(lang), batch = 8, total = linesData.length, start = 0;
+  function next(){
+    if (tok !== translateToken) return;
+    if (start >= total){ setStatus("Lyrics ready ✅", ""); saveTr(lang); return; }
+    var end = Math.min(start+batch, total), chunk = [];
+    for (var i=start;i<end;i++) chunk.push(linesData[i].orig);
+    if (chunk.every(function(l){ return /[ऀ-ॿ]/.test(l); }) && (lang==='roman_both'||lang==='hinglish')){
+      for (var k=0;k<chunk.length;k++) linesData[start+k].trans = formatFreeResult(chunk[k], chunk[k], lang);
+      drawLyrics(); start = end; next(); return;
+    }
+    function done(){ drawLyrics(); lastActiveIndex = -1; updateActiveLine(); start = end; setStatus("Translate ho raha hai ("+end+"/"+total+")…",""); next(); }
+    freeTranslateChunk(chunk.join('\n'), tl).then(function(joined){
+      if (tok !== translateToken) return;
+      var sp = joined.split('\n');
+      if (sp.length === chunk.length){
+        for (var j=0;j<chunk.length;j++) linesData[start+j].trans = formatFreeResult(chunk[j], sp[j].trim(), lang);
+        done();
+      } else {
+        Promise.all(chunk.map(function(l){ return freeTranslateChunk(l, tl).catch(function(){ return ""; }); })).then(function(res){
+          if (tok !== translateToken) return;
+          for (var m=0;m<res.length;m++) if (res[m]) linesData[start+m].trans = formatFreeResult(chunk[m], res[m].trim(), lang);
+          done();
+        });
+      }
+    }).catch(function(err){
+      if (tok !== translateToken) return;
+      setStatus("Translate mein dikkat: " + netHelp(err) + ". 🌐 Translate dubara dabaein", "error");
+    });
+  }
+  next();
+}
+function testApiKey(){
+  var key = $('apiKeyInput').value.trim(), msg = $('keyTestMsg');
+  if (!key){ msg.style.color='#ffd166'; msg.textContent="Pehle key paste karein."; return; }
+  msg.style.color='#aaa'; msg.textContent="Check ho rahi hai…";
+  fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=" + encodeURIComponent(key), {
+    method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({contents:[{role:"user",parts:[{text:"Reply with OK"}]}]})
+  }).then(function(r){ return r.json().then(function(d){ return {ok:r.ok,status:r.status,data:d}; }); })
+  .then(function(resp){
+    if (resp.ok && resp.data && resp.data.candidates){ msg.style.color='#1ed760'; msg.textContent="✅ Key sahi hai!"; }
+    else { msg.style.color='#ff6b6b'; msg.textContent="❌ " + ((resp.data && resp.data.error && resp.data.error.message) || ("HTTP "+resp.status)); }
+  }).catch(function(e){ msg.style.color='#ff6b6b'; msg.textContent="❌ " + netHelp(e); });
+}
+
+/* ---------- render & sync ---------- */
+function drawLyrics(){
+  var prev = lyricsBox.scrollTop; lyricsBox.innerHTML = '';
+  if (!linesData.length) return;
+  var frag = document.createDocumentFragment();
+  for (var i=0;i<linesData.length;i++){
+    var item = linesData[i], div = document.createElement('div');
+    div.className = isSyncedLyrics ? 'line' : 'line plain'; div.id = 'l-' + i;
+    if (isSyncedLyrics && item.time !== null){
+      div.onclick = (function(tm){ return function(){
+        pauseAutoScrollUntil = 0;
+        if (current && current.src === 'preview') {
+          syncOffset = Math.round((tm - player.currentTime) * 10) / 10;
+          $('offsetVal').textContent = (syncOffset>0?'+':'') + syncOffset.toFixed(1) + 's';
+          lastActiveIndex = -1; updateActiveLine(); toast("Sync set ✅");
+        } else if (hasSrc()) { player.currentTime = Math.max(0, tm - syncOffset); player.play().catch(function(){}); }
+      }; })(item.time);
+    }
+    var showOrig = (viewMode==='both'||viewMode==='orig'||!item.trans);
+    var showTrans = ((viewMode==='both'||viewMode==='trans') && item.trans);
+    if (showOrig){ var o = document.createElement('div'); o.className = 'orig'; o.textContent = item.orig; div.appendChild(o); }
+    if (showTrans){ var t = document.createElement('div'); t.className = 'trans'; t.textContent = item.trans; div.appendChild(t); }
+    frag.appendChild(div);
+  }
+  lyricsBox.appendChild(frag); lyricsBox.scrollTop = prev;
+  refreshKaraoke();
+}
+function adjustOffset(d){
+  syncOffset = Math.round((syncOffset + d)*10)/10;
+  $('offsetVal').textContent = (syncOffset>0?'+':'') + syncOffset.toFixed(1) + 's';
+  lastActiveIndex = -1; updateActiveLine();
+}
+function updateActiveLine(){
+  if (!isSyncedLyrics || !linesData.length) return;
+  var now = player.currentTime + syncOffset, ai = -1;
+  for (var i=0;i<linesData.length;i++){ if (now >= linesData[i].time) ai = i; else break; }
+  if (ai === lastActiveIndex) return;
+  if (lastActiveIndex !== -1){ var p = $('l-'+lastActiveIndex); if (p) p.className = 'line'; }
+  lastActiveIndex = ai; refreshKaraoke();
+  if (ai !== -1){
+    var cur = $('l-'+ai);
+    if (cur){
+      cur.className = 'line active';
+      if (Date.now() > pauseAutoScrollUntil && $('v-lyrics').classList.contains('show')){
+        lyricsBox.scrollTo({top: Math.max(0, cur.offsetTop - (lyricsBox.clientHeight/2) + (cur.clientHeight/2)), behavior:'smooth'});
+      }
+    }
+  }
+}
+function lyricsAsText(){
+  return linesData.map(function(l){ return l.orig + (l.trans ? "\n" + l.trans : ""); }).join("\n");
+}
+function copyLyrics(){
+  var text = ($('songTitle').textContent || '') + "\n\n" + lyricsAsText();
+  function fallback(){
+    try { var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast("Lyrics copy ho gayi 📋"); }
+    catch(e){ toast("Copy nahi ho paya"); }
+  }
+  try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function(){ toast("Lyrics copy ho gayi 📋"); }).catch(fallback); else fallback(); } catch(e){ fallback(); }
+}
+function downloadLrc(){
+  if (!linesData.length) return;
+  var c = "";
+  for (var i=0;i<linesData.length;i++){
+    var it = linesData[i], st = "";
+    if (it.time !== null){ var m = Math.floor(it.time/60), s = (it.time%60).toFixed(2); st = "[" + String(m).padStart(2,'0') + ":" + (s<10?"0":"") + s + "]"; }
+    c += st + it.orig + (it.trans ? " | " + it.trans : "") + "\n";
+  }
+  try {
+    var blob = new Blob([c], {type:"text/plain;charset=utf-8"});
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = ($('songTitle').textContent || "lyrics").replace(/[\\/:*?"<>|]/g,"") + ".lrc";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  } catch(e){ copyLyrics(); }
+}
+</script>
+</body>
+</html>
